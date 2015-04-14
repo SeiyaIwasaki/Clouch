@@ -44,10 +44,6 @@ void loop() {
     
     /* 電圧を測定（2段階スムージング） */                                
     long Volt = SenseVolt();
-    Serial.print("Volt = ");
-    Serial.println(Volt);
-    
-//    Serial.println(switchType);
     
     /* スイッチが存在するとき */
     if(switchExist(Volt)){
@@ -60,29 +56,15 @@ void loop() {
             firstCap++;
         }
         long Cap = SenseCap();
-        Serial.print("Cap = ");
-        Serial.println(Cap);
         
         /* タッチ判定 */
         // 測定した静電容量の値が上のしきい値より大きければ触れていると判定
         if(Cap > thresholdH){
             curTouched = true;
-//            isTmp = 1;
-//            if(isTmp != wasTmp){
-//                Serial.println("ON");
-//                Serial.println(Cap);
-//                wasTmp = 1;
-//            }
         }
         // 測定した静電容量の値が下のしきい値より小さければ触れていないと判定
         else if(Cap < thresholdL){
             curTouched = false;
-//            isTmp = 0;
-//            if(isTmp != wasTmp){
-//                Serial.println("OFF");
-//                Serial.println(Cap);
-//                wasTmp = 0;
-//            }
         }
         // ※しきい値の上と下の間である場合は、前回のタッチ状態を引き継ぐ
         preTouched = curTouched;    // 現在のタッチ状態を保存しておく
@@ -90,19 +72,18 @@ void loop() {
     
     /* スイッチの種類と触れているかどうかをシリアルに書き込む */
     /* 複数の数値を通信したいときは、一つの文字列にまとめて、processing 側でパースする必要がある */
-//    Serial.print(switchType);
-//    Serial.print(",");
-//    Serial.println(curTouched);
-    delay(100);
+    Serial.print(switchType);
+    Serial.print(",");
+    Serial.println(curTouched);
 }
 
 /* 電圧を測定 */
 long SenseVolt(){
-    long raw = analogRead(sensorPin);                         // AnalogInputから電圧値を測定
+    long raw = analogRead(sensorPin);                        // AnalogInputから電圧値を測定
     volt_buffer1[index] = raw;                               // その結果を buffer1 に蓄積する
-    long average = smoothByMeanFilter(volt_buffer1);     // Meanフィルタでスムージング
+    long average = smoothByMeanFilter(volt_buffer1);         // Meanフィルタでスムージング
     volt_buffer2[index] = average;                           // 電圧の平均値を蓄積
-    long FilterVoltValue = smoothByMeanFilter(volt_buffer2);    // スムージングした電圧値を保存
+    long FilterVoltValue = smoothByMeanFilter(volt_buffer2); // スムージングした電圧値を保存
     index = (index + 1) % BUFFER_LENGTH;                     // インデックス更新
     
     return FilterVoltValue;
@@ -115,7 +96,7 @@ long SenseCap(){
     long average = smoothByMeanFilter(cap_buffer1);
     cap_buffer2[capIndex] = average;
     long FilterCapValue = smoothByMeanFilter(cap_buffer2);
-    capIndex = (capIndex + 1) % BUFFER_LENGTH;             // インデックス更新
+    capIndex = (capIndex + 1) % BUFFER_LENGTH;               // インデックス更新
     
     return FilterCapValue;
 }
@@ -125,7 +106,6 @@ boolean switchExist(int val){
     for(int i = 0; i < switchNum; i++){
         if(switchRange[i][0] < val && val < switchRange[i][1]){
             switchType = i + 1;    // スイッチの種類を保存しておく
-            //Serial.println(switchType);
             return true;           
         }
     }
